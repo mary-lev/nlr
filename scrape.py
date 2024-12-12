@@ -5,13 +5,14 @@ async def main():
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=False)
         page = await browser.new_page()
-        await page.goto('https://primo.nlr.ru/primo-explore/search?query=lsr31,contains,%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BA%D0%BD%D0%B8%D0%B3%D0%B0%20%D0%B3%D1%80%D0%B0%D0%B6%D0%B4%D0%B0%D0%BD%D1%81%D0%BA%D0%BE%D0%B9%20%D0%BF%D0%B5%D1%87%D0%B0%D1%82%D0%B8%20XVIII%20%D0%B2.,AND&tab=default_tab&search_scope=A1XVIII_07NLR&vid=07NLR_VU2&mfacet=tlevel,include,online_resources,1&mode=advanced&offset=30&came_from=pagination_4_5')
-        await page.wait_for_timeout(1000)
+        link = 'https://primo.nlr.ru/primo-explore/search?query=lsr31,contains,%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BA%D0%BD%D0%B8%D0%B3%D0%B0%20%D0%B3%D1%80%D0%B0%D0%B6%D0%B4%D0%B0%D0%BD%D1%81%D0%BA%D0%BE%D0%B9%20%D0%BF%D0%B5%D1%87%D0%B0%D1%82%D0%B8%20XVIII%20%D0%B2.,AND&tab=default_tab&search_scope=A1XVIII_07NLR&vid=07NLR_VU2&mfacet=tlevel,include,online_resources,1&mode=advanced&offset=60&came_from=pagination_6_7'
+        await page.goto(link)
+        await page.wait_for_timeout(2000)
         buttons = await page.locator('button.neutralized-button:has-text("Электронная копия")').all()
         print(buttons)
         #buttons = await page.locator('button.neutralized-button.arrow-link-button:has(span.availability-status)').all()
     
-        for button in buttons[4:]:
+        for button in buttons:
             print(button)
             # Wait for the new tab to open when clicking the button
             async with page.expect_popup() as popup_info:
@@ -26,19 +27,22 @@ async def main():
             # This click will open another page
             async with new_page.expect_popup() as rusmarc_popup_info:
                 await bibl_link.click()
-            rusmarc_page = await rusmarc_popup_info.value
-            await rusmarc_page.wait_for_load_state('networkidle', timeout=120000)
+            try:
+                rusmarc_page = await rusmarc_popup_info.value
+                await rusmarc_page.wait_for_load_state('networkidle', timeout=60000)
         
-            # Now find and click RUSMARC link on the new page
-            rusmarc_link = rusmarc_page.locator('text=RUSMARC ISO2709')
-            if await rusmarc_link.count() > 0:
-                async with rusmarc_page.expect_download() as download_info:
-                    await rusmarc_link.click()
-                download = await download_info.value
-                await download.save_as(f"{download.suggested_filename}")
+                # Now find and click RUSMARC link on the new page
+                rusmarc_link = rusmarc_page.locator('text=RUSMARC ISO2709')
+                if await rusmarc_link.count() > 0:
+                    async with rusmarc_page.expect_download() as download_info:
+                        await rusmarc_link.click()
+                    download = await download_info.value
+                    await download.save_as(f"{download.suggested_filename}")
         
-            # Close RUSMARC page
-            await rusmarc_page.close()
+                # Close RUSMARC page
+                await rusmarc_page.close()
+            except Exception as e:
+                print(f"Error downloading RUSMARC for item: {str(e)}")
         
             download_button = new_page.locator('a#btn-download[onclick="registerDownload()"]')
             await download_button.click()
