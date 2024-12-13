@@ -61,8 +61,8 @@ async def main():
     base_url = 'https://primo.nlr.ru/primo-explore/search?query=lsr31,contains,%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BA%D0%BD%D0%B8%D0%B3%D0%B0%20%D0%B3%D1%80%D0%B0%D0%B6%D0%B4%D0%B0%D0%BD%D1%81%D0%BA%D0%BE%D0%B9%20%D0%BF%D0%B5%D1%87%D0%B0%D1%82%D0%B8%20XVIII%20%D0%B2.,AND&tab=default_tab&search_scope=A1XVIII_07NLR&vid=07NLR_VU2&mfacet=tlevel,include,online_resources,1&mode=advanced'
     
     # Define offset range
-    start_offset = 80
-    end_offset = 100
+    start_offset = 10
+    end_offset = 60
     step = 10  # Number of items per page
     
     # Load existing records if file exists
