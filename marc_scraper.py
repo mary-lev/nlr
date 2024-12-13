@@ -158,7 +158,7 @@ class MARCDownloader:
 async def main():
     try:
         # Load records
-        with open('download_records1.json', 'r', encoding='utf-8') as f:
+        with open('download_records.json', 'r', encoding='utf-8') as f:
             records = json.load(f)
         
         downloader = MARCDownloader(records)
