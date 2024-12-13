@@ -1,10 +1,11 @@
 import json
 import asyncio
 import logging
+import re
 from datetime import datetime
 from pathlib import Path
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 # Set up logging
 logging.basicConfig(
@@ -21,6 +22,27 @@ class MARCDownloader:
         self.browser = None
         self.context = None
         self.page = None
+    
+    def extract_nlr_id(self, url: str) -> Optional[str]:
+        """Extract NLR identifier from URL."""
+        match = re.search(r'NLR_LMS(\d+)', url)
+        return f"NLR{match.group(1)}.mrc" if match else None
+    
+    def check_existing_file(self, url: str) -> bool:
+        """Check if MARC file already exists for given URL."""
+        marc_filename = self.extract_nlr_id(url)
+        logging.info(f"marc name: {marc_filename}")
+        if not marc_filename:
+            logging.warning(f"Could not extract NLR ID from URL: {url}")
+            return False
+            
+        file_path = self.output_dir / marc_filename
+        exists = file_path.exists()
+        
+        if exists:
+            logging.info(f"MARC file already exists: {marc_filename}")
+        
+        return exists
         
     async def setup(self):
         """Initialize browser and context"""
@@ -63,6 +85,11 @@ class MARCDownloader:
         """Download a single MARC file"""
         try:
             link = record['rusmarc_url']
+            
+            # Check if file already exists
+            if self.check_existing_file(link):
+                return True
+                
             logging.info(f"Processing URL: {link}")
             
             # Navigate to page
@@ -131,7 +158,7 @@ class MARCDownloader:
 async def main():
     try:
         # Load records
-        with open('download_records.json', 'r', encoding='utf-8') as f:
+        with open('download_records1.json', 'r', encoding='utf-8') as f:
             records = json.load(f)
         
         downloader = MARCDownloader(records)
