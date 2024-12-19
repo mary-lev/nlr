@@ -59,8 +59,8 @@ class MARCDownloader:
             self.page = await self.context.new_page()
             
             # Set default timeouts
-            self.page.set_default_timeout(60000)
-            self.page.set_default_navigation_timeout(60000)
+            self.page.set_default_timeout(10000)
+            self.page.set_default_navigation_timeout(10000)
             
         except Exception as e:
             logging.error(f"Setup failed: {str(e)}")
@@ -103,7 +103,7 @@ class MARCDownloader:
                 return False
             
             # Download file
-            async with self.page.expect_download(timeout=30000) as download_info:
+            async with self.page.expect_download(timeout=2000) as download_info:
                 await rusmarc_link.click()
                 
             download = await download_info.value
@@ -128,8 +128,8 @@ class MARCDownloader:
 
     async def process_all_records(self):
         """Process all records with retry logic"""
-        retry_count = 3
-        retry_delay = 5
+        retry_count = 1
+        retry_delay = 1
         
         try:
             await self.setup()
@@ -158,7 +158,7 @@ class MARCDownloader:
 async def main():
     try:
         # Load records
-        with open('download_records.json', 'r', encoding='utf-8') as f:
+        with open('download_records3.json', 'r', encoding='utf-8') as f:
             records = json.load(f)
         
         downloader = MARCDownloader(records)
